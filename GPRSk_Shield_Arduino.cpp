@@ -1,12 +1,8 @@
 /*
  * GPRS_Shield_Arduino.cpp
- * A library for SeeedStudio seeeduino GPRS shield
+ * A library for  Keyestudio GSM/GPRS shield
  *
- * Copyright (c) 2015 seeed technology inc.
- * Website    : www.seeed.cc
- * Author     : lawliet zou
- * Create Time: April 2015
- * Change Log :
+ * Copyright (c) 2017 AndrewInc
  *
  * The MIT License (MIT)
  *
@@ -31,14 +27,13 @@
 
 #include <stdio.h>
 #include <HardwareSerial.h>
-#include "GPRS_Shield_Arduino.h"
+#include "GPRSk_Shield_Arduino.h"
 
-GPRS* GPRS::inst;
+GPRSk* GPRSk::inst;
 
-GPRS::GPRS(Stream& serial, uint8_t pkPin, uint8_t stPin)
+GPRSk::GPRSk(Stream& serial)
 {
-  _stPin = stPin;
-  _pkPin = pkPin;
+  _pkPin = 9;//pin упарвления sim900
 
   inst = this;
 
@@ -46,13 +41,13 @@ GPRS::GPRS(Stream& serial, uint8_t pkPin, uint8_t stPin)
   sim900_init(stream);
 }
 
-bool GPRS::init(void)
+bool GPRSk::init(void)
 {
-  if (!sim900_check_with_cmd("AT\r\n","OK\r\n",CMD))
+  if (!sim900_check_with_cmd("AT\r\n","OK\r\n",CMD)) //После получения этой команды модем автоматически подстраивает скорость передачи и формат знака к параметрам терминала
     return false;
 
 
-  if (!sim900_check_with_cmd("AT+CFUN=1\r\n","OK\r\n",CMD))
+  if (!sim900_check_with_cmd("AT+CFUN=1\r\n","OK\r\n",CMD)) //Перезагрузка модема без необходимости передергивания
     return false;
 
 
@@ -77,40 +72,36 @@ bool GPRS::init(void)
   return true;
 }
 
-bool GPRS::checkPowerUp(void) {
+bool GPRSk::checkPowerUp(void) {
     return sim900_check_with_cmd("AT\r\n","OK\r\n", CMD);
 }
 
-// power Up GPRS Shield
-void GPRS::powerOn() {
-	delay(1000);
+// power Up GPRSk Shield
+void GPRSk::powerOn() {
+	//delay(1000);
     pinMode(_pkPin, OUTPUT);
-    if (!digitalRead(_stPin)) {
-        digitalWrite(_pkPin, HIGH);
-        delay(3000);
-    }
-    digitalWrite(_pkPin, LOW);
+    digitalWrite(_pkPin, HIGH);
     delay(3000);
+    digitalWrite(_pkPin, LOW);
+    delay(5000);
 }
 
-// power Off GPRS Shield
-void GPRS::powerOff() {
+// power Off GPRSk Shield
+void GPRSk::powerOff() {
     pinMode(_pkPin, OUTPUT);
-    if (digitalRead(_stPin)) {
-        digitalWrite(_pkPin, HIGH);
-        delay(3000);
-    }
-    digitalWrite(_pkPin, LOW);
+    digitalWrite(_pkPin, HIGH);
     delay(3000);
-}  
+    digitalWrite(_pkPin, LOW);
+    delay(5000);
+}
 
-bool GPRS::checkSIMStatus(void)
+bool GPRSk::checkSIMStatus(void)
 {
   char gprsBuffer[32];
   int count = 0;
   sim900_clean_buffer(gprsBuffer,32);
   while(count < 3) {
-    sim900_send_cmd("AT+CPIN?\r\n");
+    sim900_send_cmd("AT+CPIN?\r\n");//является ли обнаруженная карта SIM-картой
     sim900_read_buffer(gprsBuffer,32,DEFAULT_TIMEOUT);
     if((NULL != strstr(gprsBuffer,"+CPIN: READY"))) {
       break;
@@ -126,7 +117,7 @@ bool GPRS::checkSIMStatus(void)
 
 
 
-bool GPRS::sendSMS(char *number, char *data)
+bool GPRSk::sendSMS(char *number, char *data)
 {
   // Set message mode to ASCII
   if(!sim900_check_with_cmd("AT+CMGF=1\r\n", "OK\r\n", CMD)) {
@@ -148,7 +139,7 @@ bool GPRS::sendSMS(char *number, char *data)
   return true;
 }
 
-char GPRS::isSMSunread()
+char GPRSk::isSMSunread()
 {
   char gprsBuffer[48];  //48 is enough to see +CMGL:
   char *s;
@@ -215,7 +206,7 @@ char GPRS::isSMSunread()
         return -1;
       }
 
-void GPRS::readSMS(char *message, char *phone, char *datetime)
+void GPRSk::readSMS(char *message, char *phone, char *datetime)
 {
   /* Response is like:
   +CMT: "+79772941911","","15/12/15,01:51:24+12"
@@ -280,7 +271,7 @@ void GPRS::readSMS(char *message, char *phone, char *datetime)
   message[j] = '\0';
 }
 
-bool GPRS::readSMS(int messageIndex, char *message,int length)
+bool GPRSk::readSMS(int messageIndex, char *message,int length)
 {
   int i = 0;
   char gprsBuffer[100];
@@ -307,7 +298,7 @@ bool GPRS::readSMS(int messageIndex, char *message,int length)
       return false;
 }
 
-void GPRS::readSMS()
+void GPRSk::readSMS()
 {
   char gprsBuffer[100];
   sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
@@ -315,7 +306,7 @@ void GPRS::readSMS()
   Serial.write(gprsBuffer);
 }
 
-bool GPRS::deleteSMS(int index)
+bool GPRSk::deleteSMS(int index)
 {
     //char cmd[16];
      char num[4];
@@ -331,12 +322,12 @@ bool GPRS::deleteSMS(int index)
      return sim900_check_with_cmd("\r\n","OK\r\n",CMD);
 }
 
-bool GPRS::ifSMSNow(void)
+bool GPRSk::ifSMSNow(void)
 {
   return sim900_check_with_cmd("","+CMT: ",CMD);
 }
 
-bool GPRS::callUp(char *number)
+bool GPRSk::callUp(char *number)
 {
   if(!sim900_check_with_cmd("AT+COLP=1\r\n","OK\r\n",CMD)) {
       return false;
@@ -348,38 +339,38 @@ bool GPRS::callUp(char *number)
   return true;
 }
 
-void GPRS::answer(void)
+void GPRSk::answer(void)
 {
   //TO CHECK: ATA doesnt return "OK" ????
   sim900_send_cmd("ATA\r\n");
 }
 
-bool GPRS::ifcallNow(void)
+bool GPRSk::ifcallNow(void)
 {
   return sim900_check_with_cmd("","RING\r\n",CMD);
 }
 
-bool GPRS::ifcallEnd(void)
+bool GPRSk::ifcallEnd(void)
 {
   return sim900_check_with_cmd("","NO CARRIER\r\n",CMD);
 }
 
-void GPRS::callEnd(void)
+void GPRSk::callEnd(void)
 {
   sim900_send_cmd("ATH0\r\n");
 }
 
-bool GPRS::hangup(void)
+bool GPRSk::hangup(void)
 {
   return sim900_check_with_cmd("ATH\r\n","OK\r\n",CMD);
 }
 
-  bool GPRS::disableCLIPring(void)
+  bool GPRSk::disableCLIPring(void)
   {
     return sim900_check_with_cmd("AT+CLIP=0\r\n","OK\r\n",CMD);
   }
 
-  bool GPRS::isCallActive(char *number)
+  bool GPRSk::isCallActive(char *number)
   {
     char gprsBuffer[46];  //46 is enough to see +CPAS: and CLCC:
     char *p, *s;
@@ -455,7 +446,7 @@ bool GPRS::hangup(void)
     return false;
   }
 
-  bool GPRS::getDateTime(char *buffer)
+  bool GPRSk::getDateTime(char *buffer)
   {
   //AT+CCLK?						--> 8 + CRLF = 10
   //+CCLK: "14/11/13,21:14:41+04"   --> 29+ CRLF = 31
@@ -485,7 +476,7 @@ bool GPRS::hangup(void)
       return false;
     }
 
-    byte GPRS::getSignalStrength() {
+    byte GPRSk::getSignalStrength() {
       //AT+CSQ: 00,00     --> 13 + CRLF = 15
       //                  --> CRLF     = 2
       //OK                --> 2 + CRLF = 4
@@ -505,8 +496,8 @@ bool GPRS::hangup(void)
     }
 
 //Here is where we ask for APN configuration, with F() so we can save MEMORY
-//bool GPRS::join(const __FlashStringHelper *apn, const __FlashStringHelper *userName, const __FlashStringHelper *passWord)
-    bool GPRS::join(char* apn, char* userName, char* passWord, int timeout)
+//bool GPRSk::join(const __FlashStringHelper *apn, const __FlashStringHelper *userName, const __FlashStringHelper *passWord)
+    bool GPRSk::join(char* apn, char* userName, char* passWord, int timeout)
     {
      byte i;
      char *p, *s;
@@ -578,12 +569,12 @@ bool GPRS::hangup(void)
     return false;
   }
 
-  void GPRS::disconnect()
+  void GPRSk::disconnect()
   {
     sim900_send_cmd("AT+CIPSHUT\r\n");
   }
 
-  bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout)
+  bool GPRSk::connect(Protocol ptl,const char * host, int port, int timeout)
   {
     //char cmd[64];
    char num[4];
@@ -623,7 +614,7 @@ bool GPRS::hangup(void)
   }
 
 //Overload with F() macro to SAVE memory
-  bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout)
+  bool GPRSk::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout)
   {
     //char cmd[64];
     char resp[96];
@@ -649,7 +640,7 @@ sim900_read_buffer(resp, 96, timeout);
     return false;
   }
 
-  bool GPRS::is_connected(void)
+  bool GPRSk::is_connected(void)
   {
     char resp[96];
     sim900_send_cmd("AT+CIPSTATUS\r\n");
@@ -664,7 +655,7 @@ sim900_read_buffer(resp, 96, timeout);
     }
   }
 
-  bool GPRS::close()
+  bool GPRSk::close()
   {
     // if not connected, return
     if (!is_connected()) {
@@ -673,22 +664,22 @@ sim900_read_buffer(resp, 96, timeout);
     return sim900_check_with_cmd("AT+CIPCLOSE\r\n", "CLOSE OK\r\n", CMD);
   }
 
-  int GPRS::readable(void)
+  int GPRSk::readable(void)
   {
     return sim900_check_readable();
   }
 
-  int GPRS::wait_readable(int wait_time)
+  int GPRSk::wait_readable(int wait_time)
   {
     return sim900_wait_readable(wait_time);
   }
 
-  int GPRS::wait_writeable(int req_size)
+  int GPRSk::wait_writeable(int req_size)
   {
     return req_size+1;
   }
 
-  int GPRS::send(const char * str, int len)
+  int GPRSk::send(const char * str, int len)
   {
     //char cmd[32];
    char num[4];
@@ -716,7 +707,7 @@ sim900_read_buffer(resp, 96, timeout);
           return len;
         }
 
-        int GPRS::send(const char * str) {
+        int GPRSk::send(const char * str) {
     //char cmd[32];
           int len=strlen(str);
           char num[4];
@@ -744,14 +735,14 @@ sim900_read_buffer(resp, 96, timeout);
           return len;
         }
 
-        int GPRS::recv(char* buf, int len)
+        int GPRSk::recv(char* buf, int len)
         {
           sim900_clean_buffer(buf,len);
     sim900_read_buffer(buf,len);   //Ya he llamado a la funcion con la longitud del buffer - 1 y luego le estoy añadiendo el 0
     return strlen(buf);
   }
 
-uint32_t GPRS::str_to_ip(const char* str)
+uint32_t GPRSk::str_to_ip(const char* str)
 {
   uint32_t ip = 0;
   char* p = (char*)str;
@@ -768,13 +759,13 @@ uint32_t GPRS::str_to_ip(const char* str)
   return ip;
 }
 
-char* GPRS::getIPAddress()
+char* GPRSk::getIPAddress()
 {
   //I have already a buffer with ip_string: snprintf(ip_string, sizeof(ip_string), "%d.%d.%d.%d", (_ip>>24)&0xff,(_ip>>16)&0xff,(_ip>>8)&0xff,_ip&0xff);
   return ip_string;
 }
 
-unsigned long GPRS::getIPnumber()
+unsigned long GPRSk::getIPnumber()
 {
   return _ip;
 }
@@ -788,7 +779,7 @@ void setPK(uint8_t pkPin)
 
 }
 
-/* NOT USED bool GPRS::gethostbyname(const char* host, uint32_t* ip)
+/* NOT USED bool GPRSk::gethostbyname(const char* host, uint32_t* ip)
 {
     uint32_t addr = str_to_ip(host);
     char buf[17];

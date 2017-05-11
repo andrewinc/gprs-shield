@@ -1,12 +1,8 @@
 /*
  * sim900.cpp
- * A library for SeeedStudio seeeduino GPRS shield 
- *  
- * Copyright (c) 2015 seeed technology inc.
- * Website    : www.seeed.cc
- * Author     : lawliet zou
- * Create Time: April 2015
- * Change Log :
+ * A library for  Keyestudio GSM/GPRS shield
+ *
+ * Copyright (c) 2017 AndrewInc
  *
  * The MIT License (MIT)
  *
@@ -122,14 +118,14 @@ void sim900_send_cmd(const __FlashStringHelper* cmd)
   int i = 0;
   const char *ptr = (const char *) cmd;
   while (pgm_read_byte(ptr + i) != 0x00) {
-    sim900_send_byte(pgm_read_byte(ptr + i++));  
+    sim900_send_byte(pgm_read_byte(ptr + i++));
   }
 }
 
 void sim900_send_cmd_P(const char* cmd)
 {
   while (pgm_read_byte(cmd) != 0x00)
-    sim900_send_byte(pgm_read_byte(cmd++));  
+    sim900_send_byte(pgm_read_byte(cmd++));
 }
 
 void sim900_send_AT(void)
@@ -163,11 +159,11 @@ boolean sim900_wait_for_resp(const char* resp, DataType type, unsigned int timeo
         if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
             return false;
         }
-        
+
     }
     //If is a CMD, we will finish to read buffer.
     if(type == CMD) sim900_flush_serial();
-    return true;   
+    return true;
 }
 
 
@@ -183,4 +179,3 @@ boolean sim900_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, 
     sim900_send_cmd(cmd);
     return sim900_wait_for_resp(resp,type,timeout,chartimeout);
 }
-

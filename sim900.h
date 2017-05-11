@@ -1,12 +1,8 @@
 /*
- * sim900.h 
- * A library for SeeedStudio seeeduino GPRS shield 
- *  
- * Copyright (c) 2015 seeed technology inc.
- * Website    : www.seeed.cc
- * Author     : lawliet zou
- * Create Time: April 2015
- * Change Log :
+ * sim900.h
+ * A library for  Keyestudio GSM/GPRS shield 
+ *
+ * Copyright (c) 2017 AndrewInc
  *
  * The MIT License (MIT)
  *
@@ -52,7 +48,7 @@ void  sim900_send_byte(uint8_t data);
 void  sim900_send_char(const char c);
 void  sim900_send_cmd(const char* cmd);
 void  sim900_send_cmd(const __FlashStringHelper* cmd);
-void  sim900_send_cmd_P(const char* cmd);   
+void  sim900_send_cmd_P(const char* cmd);
 void  sim900_send_AT(void);
 void  sim900_send_End_Mark(void);
 boolean  sim900_wait_for_resp(const char* resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);

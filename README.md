@@ -1,43 +1,48 @@
-GPRS Shield
+keyestudio gsm gprs shield
 ===========
 
-Библиотека для Arduino, позволяющая управлять [GPRS Shield’ом](http://amperka.ru/product/arduino-gprs-shield)
-от [Амперки](http://amperka.ru/).
+Библиотека для Arduino, позволяющая управлять [GSM/GPRS Shield’ом keyestudio] (PDF download: http://www.keyestudio.com/files/index/download/id/1479110960/)
+от [keyestudio] (http://www.keyestudio.com/keyestudio-sim900-gsm-gprs-module-shield.html).
+
+datasheet чипа sim900 https://www.elecfreaks.com/estore/download/EF03072-SIM900_Hardware%20Design_V2.00.pdf
 
 Установка
 =========
-
-В Arduino IDE выберите пункт меню «Скетч» → «Импортировать библиотеку» →
-«Добавить библиотеку…». В появившемся окне выберите скачаный архив с
-библиотекой. Установка завершена.
+Скопировать папку распакованного архива в arduino/libraries
+Узнать расположение папки arduino можно в Arduino IDE → пункт меню «Файл» → «Настройки». Перезапустите  Arduino IDE. Установка завершена.
 
 Пример использования
 ====================
 
 ```cpp
 // библиотека для работы с GPRS устройством
-#include <GPRS_Shield_Arduino.h>
- 
+#include <GPRSk_Shield_Arduino.h>
+
 // библиотека для эмуляции Serial порта
-// она нужна для работы библиотеки GPRS_Shield_Arduino
+// она нужна для работы библиотеки GPRSk_Shield_Arduino
 #include <SoftwareSerial.h>
- 
-// создаём объект класса GPRS и передаём в него объект Serial1 
-GPRS gprs(Serial1);
-// можно указать дополнительные параметры — пины PK и ST
-// по умолчанию: PK = 2, ST = 3
-// GPRS gprs(Serial1, 2, 3);
- 
+
+// создаём объект mySerial и передаём номера управляющих пинов RX и TX
+SoftwareSerial mySerial(6, 7);
+
+// создаём объект класса GPRS и передаём в него объект mySerial
+GPRSk gprs(mySerial);
+
 void setup()
 {
+  // открываем последовательный порт для мониторинга действий в программе
+  Serial.begin(9600);
+
+  // открываем Serial-соединение с GPRS Shield
+  mySerial.begin(9600);
+
+  // ждём, пока не откроется монитор последовательного порта
+  // для того, чтобы отследить все события в программе
+  while (!Serial) {
+  }
+  Serial.print("Serial init OK\r\n");
   // включаем GPRS шилд
   gprs.powerOn();
-  // открываем последовательный порт для мониторинга действий в программе
-  Serial.begin(9600); 
-  while (!Serial) {
-    // ждём, пока не откроется монитор последовательного порта
-    // для того, чтобы отследить все события в программе
-  }
   // проверяем есть ли связь с GPRS устройством
   while (!gprs.init()) {
     // если связи нет, ждём 1 секунду
@@ -45,15 +50,25 @@ void setup()
     // процесс повторяется в цикле
     // пока не появится ответ от GPRS устройства
     delay(1000);
-    Serial.print("Init error\r\n");
+    Serial.print("GPRS Init error\r\n");
   }
+  // вывод об удачной инициализации GPRS Shield
+  Serial.println("GPRS init success");
+
+  Serial.print("Send SMS: ");
   // отправляем сообщение по указанному номеру с заданным текстом
-  gprs.sendSMS("+79263995140", "Hello SMS from Amperka!");
+  if (gprs.sendSMS("+79007654321", "Hello from Keyestudio GSM/GPRS Shield!"))
+    Serial.println("Ok");
+  else
+    Serial.println("Error");  
 }
- 
+
 void loop()
 {
 }
-```
-
-Больше примеров — [в статье на Амперка / Вики](http://wiki.amperka.ru/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82%D1%8B:gprs-shield).
+/*
+В результате, помимо SMS по укзанному номеру, в монитор порта попадут такие строки:
+Serial init OK
+GPRS init success
+Send SMS: Ok
+*/

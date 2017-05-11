@@ -1,15 +1,11 @@
 /*
- * GPRS_Shield_Arduino.h
- * A library for SeeedStudio seeeduino GPRS shield
+ * GPRSk_Shield_Arduino.h
+ * A library for  Keyestudio GSM/GPRS shield
  *
- * Copyright (c) 2015 seeed technology inc.
- * Website    : www.seeed.cc
- * Author     : lawliet zou
- * Create Time: April 2015
- * Change Log :
+ * Copyright (c) 2017 AndrewInc
  *
  * The MIT License (MIT)
-  *
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -34,8 +30,8 @@
 
 #include "sim900.h"
 
-/** GPRS class.
- *  used to realize GPRS communication
+/** GPRSs class.
+ *  used to realize GPRSk communication
  */
 
 enum Protocol {
@@ -44,28 +40,28 @@ enum Protocol {
     UDP    = 2,
 };
 
-class GPRS
+class GPRSk
 {
 public:
-    /** Create GPRS instance
+    /** Create GPRSk instance
      */
 
-    GPRS(Stream& serial, uint8_t pkPin = 2, uint8_t stPin = 3);
+    GPRSk(Stream& serial);
 
-    /** get instance of GPRS class
+    /** get instance of GPRSk class
      */
-    static GPRS* getInstance() {
+    static GPRSk* getInstance() {
         return inst;
     };
 
-    /** initialize GPRS module including SIM card check & signal strength
+    /** initialize GPRSk module including SIM card check & signal strength
      *  @return true if connected, false otherwise
      */
 
     bool init(void);
 
 
-    /** check if GPRS module is powered on or not
+    /** check if GPRSk module is powered on or not
      *  @returns
      *      true on success
      *      false on error
@@ -73,7 +69,7 @@ public:
     bool checkPowerUp(void);
 
 
-    /** power Up GPRS module (JP has to be soldered)
+    /** power Up GPRSk module (JP has to be soldered)
      *  @param  pin pin 9 connected to JP jumper so we can power up and down through software
      *  @returns
      *
@@ -112,7 +108,7 @@ public:
     void readSMS(char *message, char *phone, char *datetime);
 
     /** read SMS if getting a SMS message
-     *  @param  buffer  buffer that get from GPRS module(when getting a SMS, GPRS module will return a buffer array)
+     *  @param  buffer  buffer that get from GPRSk module(when getting a SMS, GPRSk module will return a buffer array)
      *  @param  message buffer used to get SMS message
      *  @param  check   whether to check phone number(we may only want to read SMS from specified phone number)
      *  @returns
@@ -194,22 +190,22 @@ public:
 
 
 //////////////////////////////////////////////////////
-/// GPRS
+/// GPRSk
 //////////////////////////////////////////////////////
-   /**  Connect the GPRS module to the network.
+   /**  Connect the GPRSk module to the network.
      *  @return true if connected, false otherwise
      */
 
 //    bool join(const __FlashStringHelper *apn = 0, const __FlashStringHelper *userName = 0, const __FlashStringHelper *passWord = 0);
      bool join(char* apn = 0, char* = 0, char* = 0, int timeout = 2 * DEFAULT_TIMEOUT);
 
-    /** Disconnect the GPRS module from the network
+    /** Disconnect the GPRSk module from the network
      *  @returns
      */
     void disconnect(void);
 
     /** Open a tcp/udp connection with the specified host on the specified port
-     *  @param socket an endpoint of an inter-process communication flow of GPRS module,for SIM900 module, it is in [0,6]
+     *  @param socket an endpoint of an inter-process communication flow of GPRSk module,for SIM900 module, it is in [0,6]
      *  @param ptl protocol for socket, TCP/UDP can be choosen
      *  @param host host (can be either an ip address or a name. If a name is provided, a dns request will be established)
      *  @param port port
@@ -229,18 +225,18 @@ public:
      */
     bool close(void);
 
-    /** check if GPRS module is readable or not
+    /** check if GPRSk module is readable or not
      *  @returns true if readable
      */
     int readable(void);
 
-    /** wait a few time to check if GPRS module is readable or not
+    /** wait a few time to check if GPRSk module is readable or not
      *  @param socket socket
      *  @param wait_time time of waiting
      */
     int wait_readable(int wait_time);
 
-    /** wait a few time to check if GPRS module is writeable or not
+    /** wait a few time to check if GPRSk module is writeable or not
      *  @param socket socket
      *  @param wait_time time of waiting
      */
@@ -275,13 +271,12 @@ public:
 
 private:
     bool checkSIMStatus(void);
-    uint8_t _stPin = 3;
-    uint8_t _pkPin = 2;
+    uint8_t _pkPin = 9;
 
     uint32_t str_to_ip(const char* str);
 //    SoftwareSerial gprsSerial;
     Stream* stream;
-    static GPRS* inst;
+    static GPRSk* inst;
     uint32_t _ip;
     char ip_string[16]; //XXX.YYY.ZZZ.WWW + \0
 };
