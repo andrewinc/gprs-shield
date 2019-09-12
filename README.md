@@ -1,5 +1,6 @@
 keyestudio gsm gprs shield
 ===========
+Статья https://habr.com/ru/post/403843/
 
 Библиотека для Arduino, позволяющая управлять [GSM/GPRS Shield’ом keyestudio] (PDF download: http://www.keyestudio.com/files/index/download/id/1479110960/)
 от [keyestudio] (http://www.keyestudio.com/keyestudio-sim900-gsm-gprs-module-shield.html).
